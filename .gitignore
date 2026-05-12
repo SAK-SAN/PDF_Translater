@@ -1,0 +1,31 @@
+# --- セキュリティ・秘密情報 ---
+# APIキーや環境変数が書かれたファイル（絶対にGitHubに上げない）
+.env
+
+# --- Python 実行時の一時ファイル ---
+# プログラム実行時に自動生成されるキャッシュなど
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# --- 仮想環境 (Virtual Environment) ---
+# ライブラリがインストールされる場所（人によってパスが違うため除外）
+venv/
+.venv/
+env/
+ENV/
+
+# --- OS・エディタ関連 ---
+# Mac固有の隠しファイル
+.DS_Store
+# Windows固有のキャッシュファイル
+Thumbs.db
+# VS Codeの設定フォルダ（共有したい場合は除外を外してもOK）
+.vscode/
+
+# --- アプリ固有の出力ファイル ---
+# 翻訳された結果のWordやPDF（自分のPCにだけあれば良い場合）
+*.docx
+*.pdf
+!template.pdf  # もし「見本」として残したいPDFがあれば「!」で除外から外せます
