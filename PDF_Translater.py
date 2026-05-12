@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import random
 import concurrent.futures
 import re
+import textwrap
 
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY")) #.envファイルからAPIキーを取得
@@ -26,7 +27,29 @@ def translate_worker(index, chunk, model_name):
     max_retries = 10
     for attempt in range(max_retries):
         try:
-            prompt = f"以下の英語の論文内容を、全ての文章を一文も余すことなく、専門用語を適切に扱いながら自然な日本語に翻訳してください。また解答は、翻訳した内容のみを生成してください。翻訳の際に何かしらのエラー等によって翻訳が困難な場合は「**翻訳エラー**」とだけ返してください:\n\n{chunk}"
+            prompt = textwrap.dedent(f"""
+                                     # Role
+                                    あなたは学術論文の翻訳を専門とする、プロフェッショナルな翻訳家です。
+                                    情報通信工学、人間工学、および行動心理学の高度な専門知識を持ち、文脈に応じた適切な専門用語の選定と、流暢で自然な日本語表現を両立させるエキスパートです。
+                                    
+                                    # Task
+                                    入力される英語の論文内容を、以下の【厳守ルール】に従って日本語に翻訳してください。
+                                    # 【厳守ルール】
+                                    1. **完全翻訳の徹底**: 
+                                    - 入力されたテキストに含まれる全ての文章を、一文も漏らさず、省略することなく全て翻訳してください。
+                                    - 要約や「以下省略」といった処理は絶対に禁止します。
+                                    2. **専門用語の最適化**: 
+                                    - 文脈（特に情報通信や人間工学）に合わせ、日本の学会や論文で一般的に用いられる標準的な専門用語を適切に選択してください。
+                                    3. **出力形式の制限**: 
+                                    - **翻訳した内容のみ**を出力してください。
+                                    - 「はい、翻訳しました」「以下が翻訳結果です」といった挨拶、前置き、解説などは一切含めないでください。
+                                    4. **エラーハンドリング**: 
+                                    - 入力内容が極端に不完全である、または技術的に翻訳が極めて困難であると判断した場合は、理由を述べず **「**翻訳エラー**」** とだけ返してください。
+
+                                    # 翻訳対象のテキスト
+                                    {chunk}
+                                    """).strip()
+
             response = client.models.generate_content(
                     model=model_name,
                     contents=prompt
