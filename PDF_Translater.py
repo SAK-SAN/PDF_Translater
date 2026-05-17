@@ -4,14 +4,15 @@ from google import genai
 from docx import Document   #Word作成用
 import time #待ち時間用
 import os
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 import random
 import concurrent.futures
 import re
 import textwrap
 
-load_dotenv()
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY")) #.envファイルからAPIキーを取得
+#load_dotenv()
+#client = genai.Client(api_key=os.getenv("GEMINI_API_KEY")) #.envファイルからAPIキーを取得
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"]) #st.secretsからAPIキーを取得
 
 # セッション状態（データの記憶）の初期化
 if "result_path" not in st.session_state:
