@@ -163,10 +163,6 @@ if api_key:
         target_model = "models/gemini-3.1-flash-lite"
 else:
     st.error("APIキーが設定されていないため、モデル一覧を取得できません。")
-"""
-st.selectbox("使用するモデルを選択してください",
-                            ["gemini-3.1-flash-lite", "gemini-2.0-flash", "gemini-2.5-flash"])
-"""
 if uploaded_file is not None:
     st.info("ファイルがアップロードされました。下のボタンを押すと翻訳を開始します。")   
     if st.button("翻訳を開始",disabled=st.session_state.is_processing):
