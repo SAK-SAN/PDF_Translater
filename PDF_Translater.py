@@ -32,7 +32,7 @@ def get_gemini_models(api_key):
 #load_dotenv()
 #client = genai.Client(api_key=os.getenv("GEMINI_API_KEY")) #.envファイルからAPIキーを取得
 api_key=st.secrets["GEMINI_API_KEY"]
-client = genai.Client(api_key) #st.secretsからAPIキーを取得
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"]) #st.secretsからAPIキーを取得
 
 # セッション状態（データの記憶）の初期化
 if "result_path" not in st.session_state:
