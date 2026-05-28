@@ -7,12 +7,32 @@ import os
 #from dotenv import load_dotenv
 import random
 import concurrent.futures
+import requests
 import re
 import textwrap
 
+def get_gemini_models(api_key):
+    try:
+        # モデル一覧を取得するエンドポイント
+        list_url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+        res = requests.get(list_url)
+        if res.status_code == 200:
+            data = res.json()
+            # generateContent（テキスト生成）に対応しているモデルのみを抽出
+            models = [
+                m["name"] for m in data.get("models", []) 
+                if "generateContent" in m.get("supportedGenerationMethods", [])
+            ]
+            return models
+        else:
+            return []
+    except Exception:
+        return []
+
 #load_dotenv()
 #client = genai.Client(api_key=os.getenv("GEMINI_API_KEY")) #.envファイルからAPIキーを取得
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"]) #st.secretsからAPIキーを取得
+api_key=st.secrets["GEMINI_API_KEY"]
+client = genai.Client(api_key) #st.secretsからAPIキーを取得
 
 # セッション状態（データの記憶）の初期化
 if "result_path" not in st.session_state:
@@ -29,7 +49,7 @@ def translate_worker(index, chunk, model_name):
     for attempt in range(max_retries):
         try:
             prompt = textwrap.dedent(f"""
-                                     # Role
+                                    # Role
                                     あなたは学術論文の翻訳を専門とする、プロフェッショナルな翻訳家です。
                                     情報通信工学、人間工学、および行動心理学の高度な専門知識を持ち、文脈に応じた適切な専門用語の選定と、流暢で自然な日本語表現を両立させるエキスパートです。
                                     
@@ -120,9 +140,33 @@ uploaded_file = st.file_uploader("PDFファイルを選択していください"
 
 doc_name = st.text_input("Wordタイトル", value="論文和訳結果")
 
-target_model = st.selectbox("使用するモデルを選択してください",
+target_model = None
+if api_key:
+    with st.spinner("利用可能なGeminiモデルを確認中..."):
+        available_models = get_gemini_models(api_key)
+    
+    if available_models:
+        # デフォルトで「gemini-3.1-flash-lite」や「gemini-2.5-flash」などがあればそれを初期値にするロジック
+        default_index = 0
+        for i, m in enumerate(available_models):
+            if "gemini-3.1-flash-lite" in m:
+                default_index = i
+                break
+        
+        target_model = st.selectbox(
+            "使用するAIモデルを選択してください（APIから自動取得）",
+            options=available_models,
+            index=default_index
+        )
+    else:
+        st.warning("モデル一覧の取得に失敗しました。デフォルトのモデルを使用します。")
+        target_model = "models/gemini-3.1-flash-lite"
+else:
+    st.error("APIキーが設定されていないため、モデル一覧を取得できません。")
+"""
+st.selectbox("使用するモデルを選択してください",
                             ["gemini-3.1-flash-lite", "gemini-2.0-flash", "gemini-2.5-flash"])
-
+"""
 if uploaded_file is not None:
     st.info("ファイルがアップロードされました。下のボタンを押すと翻訳を開始します。")   
     if st.button("翻訳を開始",disabled=st.session_state.is_processing):
@@ -137,7 +181,7 @@ if uploaded_file is not None:
                 st.error(f"エラーが発生しました: {e}")
             finally:
                 st.session_state.is_processing = False
-                st.rerun()
+                #st.rerun()
 
 #翻訳が完了している場合のみダウンロードボタンを表示し続ける
 if st.session_state.result_path and os.path.exists(st.session_state.result_path):
