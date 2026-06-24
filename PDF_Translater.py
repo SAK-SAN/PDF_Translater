@@ -42,6 +42,7 @@ if "final_filename" not in st.session_state:
 if "is_processing" not in st.session_state:
     st.session_state.is_processing = False
 
+st.set_page_config(page_title="PDF翻訳", layout="centered")
 st.title("PDF翻訳") #アプリのタイトル
 
 def translate_worker(index, chunk, model_name):
